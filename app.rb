@@ -11,7 +11,9 @@ FLICKR = {
 }
 
 helpers do
-  def me?(provider, credential)
+  def me?(request)
+    provider = request.env['HTTP_X_AUTH_SERVICE_PROVIDER']
+    credential = request.env['HTTP_X_VERIFY_CREDENTIALS_AUTHORIZATION']
     auth = HTTParty.get(provider, :headers => {'Authorization' => credential})
     SCREEN_NAME == auth.parsed_response['screen_name']
   end
@@ -29,9 +31,7 @@ helpers do
 end
 
 post '/flickr.json' do
-  provider = request.env['HTTP_X_AUTH_SERVICE_PROVIDER']
-  credential = request.env['HTTP_X_VERIFY_CREDENTIALS_AUTHORIZATION']
-  return 401 unless me?(provider, credential)
+  return 401 unless me?(request)
 
   photo_id = flickr.upload_photo(
     params['media'][:tempfile],
